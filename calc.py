@@ -1,6 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from tabulate import tabulate
+
 from clases.pnts import CargaPuntual
+
+# K = 9e9  # Constante de Coulomb en N·m²/C²
+K = 1/(4*np.pi*8.85e-12)  # Constante de Coulomb en N·m²/C²
+
 
 def ley_de_coulomb():
     print("Simulación de la Ley de Coulomb")
@@ -28,7 +34,6 @@ def ley_de_faraday():
 
 def cargas_puntuales():
     print("Simulación de Cargas Puntuales")
-    k = 1/(4*np.pi*8.85e-12)  # Constante de Coulomb en N·m²/C²
 
     # Ingreso de datos
     cargas = []
@@ -52,13 +57,37 @@ def cargas_puntuales():
         for c in cargas:
             if c != carga:
                 r = np.sqrt((carga.x - c.x)**2 + (carga.y - c.y)**2)
-                fuerza = k * c.q / r**2
+                fuerza = K * c.q / r**2
                 fuerza_x = fuerza * (c.x - carga.x) / r
                 fuerza_y = fuerza * (c.y - carga.y) / r
                 fuerza_total_x += fuerza_x
                 fuerza_total_y += fuerza_y
+        carga.Fe = (fuerza_total_x, fuerza_total_y)
         fuerza_electr = np.sqrt(fuerza_total_x**2 + fuerza_total_y**2)
         print(f"La fuerza eléctrica sobre la carga {_} C es: {fuerza_electr:.2e} N en la dirección ({fuerza_total_x:.2e} i, {fuerza_total_y:.2e} j)")
+
+    # Manual Energía Potencial Eléctrica
+    for _, carga in enumerate(cargas):
+        potencial_total_x = 0
+        potencial_total_y = 0
+        for c in cargas:
+            if c != carga:
+                r = np.sqrt((carga.x - c.x)**2 + (carga.y - c.y)**2)
+                potencial = K * c.q / r
+                potencial_x = potencial * (c.x - carga.x) / r
+                potencial_y = potencial * (c.y - carga.y) / r
+                potencial_total_x += potencial_x
+                potencial_total_y += potencial_y
+        carga.Ue = (potencial_total_x, potencial_total_y)
+        potencial_electr = np.sqrt(potencial_total_x**2 + potencial_total_y**2)
+        print(f"La energía potencial eléctrica sobre la carga {_} C es: {potencial_electr:.2e} J en la dirección ({potencial_total_x:.2e} i, {potencial_total_y:.2e} j)")
+
+    # Print tabla
+    print(tabulate([[
+        carga.q, carga.x, carga.y, carga.Fe[0], carga.Fe[1], carga.Ue[0], carga.Ue[1]] for carga in cargas], 
+        headers=["Carga (C)", "x (m)", "y (m)", "Fe x (N)", "Fe y (N)", "Ue x (J)", "Ue y (J)"],
+        tablefmt="fancy_grid"
+        ))
 
     # Gráfica
     if input("Desea graficar el campo eléctrico? [s/n]: ") == "s":
@@ -69,8 +98,8 @@ def cargas_puntuales():
         Ey = np.zeros_like(Y)
         for carga in cargas:
             r = np.sqrt((X - carga.x)**2 + (Y - carga.y)**2)
-            Ex += k * carga.q * (X - carga.x) / r**3
-            Ey += k * carga.q * (Y - carga.y) / r**3
+            Ex += K * carga.q * (X - carga.x) / r**3
+            Ey += K * carga.q * (Y - carga.y) / r**3
 
         plt.streamplot(X, Y, Ex, Ey)
         size_norm = np.array([abs(carga.q) for carga in cargas])

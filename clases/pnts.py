@@ -3,6 +3,9 @@ class CargaPuntual:
         self.q = q
         self.x = x
         self.y = y
+        self.Fe = []
+        self.Ue = []
+        self.calculado = []
 
     def __str__(self):
         return f'Carga_Puntual(k={self.q}, x={self.x}, y={self.y})'
